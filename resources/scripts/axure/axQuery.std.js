@@ -1093,7 +1093,6 @@ $axure.internal(function($ax) {
                 if(curr != enabled) {
                     query.prop('checked', enabled);
                     $ax.style.SetWidgetSelected(elementIds[index], enabled, true);
-                    $ax.event.TryFireCheckChanged(elementId, enabled);
                 }
             }
         }
