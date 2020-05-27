@@ -344,19 +344,35 @@
 
         if(!images) return undefined;
 
-        var scriptId = $ax.repeater.getScriptIdFromElementId(id);
+        let scriptId = $ax.repeater.getScriptIdFromElementId(id);
+        
+        if(state == 'disabled' && $ax.style.IsWidgetSelected(id) || state == 'selected' && $ax.style.IsWidgetDisabled(id)) {
+            let diagramObject = $ax.getObjectFromElementId(id);
+            if(diagramObject && $ax.public.fn.IsSelectionButton(diagramObject.type)) {
+                var selectedDisabled = $ax.constants.SELECTED_DISABLED;
+            }
+        }
+
         // first check all the images for this state
-        for(var i = viewIdChain.length - 1; i >= 0; i--) {
-            var viewId = viewIdChain[i];
-            var img = images[scriptId + "~" + state + "~" + viewId];
-            if(!img) img = images[state + "~" + viewId];
-            if(img) return img;
+        for(let i = viewIdChain.length - 1; i >= 0; i--) {
+            let viewId = viewIdChain[i];
+            if(selectedDisabled) {
+                let img = findImage(images, scriptId, selectedDisabled, viewId)
+                if(img) return img;
+            } else {
+                let img = findImage(images, scriptId, state, viewId);
+                if (img) return img;
+            }
         }
         // check for the default state style
-        var defaultStateImage = images[scriptId + "~" + state + "~"];
-        if(!defaultStateImage) defaultStateImage = images[state + "~"];
-        if(defaultStateImage) return defaultStateImage;
-
+        if(selectedDisabled) {
+            let defaultStateImage = findImage(images, scriptId, selectedDisabled)
+            if(defaultStateImage) return defaultStateImage;
+        } else {
+            let defaultStateImage = findImage(images, scriptId, state);
+            if (defaultStateImage) return defaultStateImage;
+        }
+        
         if(doNotProgress) return undefined;
 
         state = $ax.style.progessState(state);
@@ -365,6 +381,16 @@
         // SHOULD NOT REACH HERE! NORMAL SHOULD ALWAYS CATCH AT THE DEFAULT!
         return images['normal~']; // this is the default
     };
+    
+    let findImage = function(images, scriptId, state, viewId) {
+        if(!images) return undefined;
+
+        if(!viewId) viewId = "";
+        let withScript = scriptId + "~" + state + "~" + viewId;
+        let img = images[withScript];
+        if(!img) img = images[state + "~" + viewId];
+        return img;
+    }
 
     var _matchImageCompound = function(diagramObject, id, viewIdChain, state) {
         var images = [];
